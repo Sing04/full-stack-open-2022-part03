@@ -5,6 +5,7 @@ const cors = require('cors')
 const app = express()
 
 app.use(express.json())
+app.use(express.static('build'))
 app.use(cors())
 app.use(morgan(function (tokens, req, res) {
     return [
@@ -80,21 +81,21 @@ const generateId = (max) => {
 app.post('/api/persons', (request, response) => {
     const body = request.body
 
-    if(!body.name && !body.number) {
+    if(body.name === '' && body.number === '') {
         return response.status(400).json({
-            error: 'person name and number missing'
+            error: 'Error: person name and number missing'
         })
-    } else if (!body.name) {
+    } else if (body.name === '') {
         return response.status(400).json({
-            error: 'person name missing'
+            error: 'Error: person name missing'
         })
-    } else if (!body.number) {
+    } else if (body.number === '') {
         return response.status(400).json({
-            error: 'person number missing'
+            error: 'Error: person number missing'
         })
     } else if (persons.find(person => person.name === body.name)) {
         return response.status(400).json({
-            error: 'name already exists in phonebook; name must be unique'
+            error: 'Error: name already exists in phonebook. Name must be unique'
         })
     }
     
@@ -110,7 +111,7 @@ app.post('/api/persons', (request, response) => {
     
 })
 
-const PORT = 3001
+const PORT = process.env.PORT || 3001
 app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`)
+  console.log(`Server running on port ${PORT}`)
 })
