@@ -5,8 +5,8 @@ const Person = require('./models/person')
 
 const app = express()
 
-app.use(express.json())
 app.use(express.static('build'))
+app.use(express.json())
 app.use(cors())
 app.use(morgan(function (tokens, req, res) {
     return [
@@ -24,6 +24,26 @@ morgan.token('body', function(req, res){
         return JSON.stringify(req.body)
     }
 })
+
+app.get('/api/persons', (request, response) => {
+    Person.find({}).then(persons => {
+        response.json(persons)
+    })
+})
+
+
+// Error handler middleware
+const errorHandler = (error, request, response, next) => {
+    console.log(error.message)
+
+    if (error.name === "CastError") {
+        return response.status(400).send({error: 'malformatted id'})
+    }
+
+    next(error)
+}
+
+app.use(errorHandler)
 
 let persons = [
     { 
@@ -48,18 +68,14 @@ let persons = [
     }
 ]
 
-app.get('/api/persons', (request, response) => {
-    Person.find({}).then(persons => {
-        response.json(persons)
-    })
-})
+
 
 app.get('/api/info', (request, response) => {
     const date = new Date()
     response.send(`<div> <p>Phonebook has info for ${persons.length} people</p> <p>${date}</p> </div>`)
 })
 
-app.get('/api/persons/:id', (request, response) => {
+app.get('/api/persons/:id', (request, response, next) => {
     Person.findById(request.params.id)
         .then(person => {
             if (person) {
@@ -68,17 +84,15 @@ app.get('/api/persons/:id', (request, response) => {
                 response.status(404).end()
               }
             })
-            .catch(error => {
-              console.log(error)
-              response.status(500).end()
-            })
+            .catch(error => next(error))
 })
 
-app.delete('/api/persons/:id', (request, response) => {
-    const id = Number(request.params.id)
-    persons = persons.filter(person => person.id !== id)
-  
-    response.status(204).end()
+app.delete('/api/persons/:id', (request, response, next) => {
+    Person.findByIdAndRemove(request.params.id)
+        .then(result => {
+            response.status(204).end()
+        })
+        .catch(error => next(error))
 })
 
 app.post('/api/persons', (request, response) => {
