@@ -43,34 +43,12 @@ app.get('/api/persons/:id', (request, response, next) => {
             .catch(error => next(error))
 })
 
-let persons = [
-    { 
-      "id": 1,
-      "name": "Arto Hellas", 
-      "number": "040-123456"
-    },
-    { 
-      "id": 2,
-      "name": "Ada Lovelace", 
-      "number": "39-44-5323523"
-    },
-    { 
-      "id": 3,
-      "name": "Dan Abramov", 
-      "number": "12-43-234345"
-    },
-    { 
-      "id": 4,
-      "name": "Mary Poppendieck", 
-      "number": "39-23-6423122"
-    }
-]
-
-
-
 app.get('/api/info', (request, response) => {
     const date = new Date()
-    response.send(`<div> <p>Phonebook has info for ${persons.length} people</p> <p>${date}</p> </div>`)
+    Person.find({}).count().
+        then(count => {
+            response.send(`<div> <p>Phonebook has info for ${count} people</p> <p>${date}</p> </div>`)
+        })
 })
 
 
@@ -97,12 +75,8 @@ app.post('/api/persons', (request, response) => {
         return response.status(400).json({
             error: 'Error: person number missing'
         })
-    } else if (persons.find(person => person.name === body.name)) {
-        return response.status(400).json({
-            error: 'Error: name already exists in phonebook. Name must be unique'
-        })
-    }
-    
+    } 
+
     const person = new Person ({
         name: body.name,
         number: body.number
