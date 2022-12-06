@@ -14,31 +14,32 @@ mongoose.connect(url)
   })
 
 const personSchema = new mongoose.Schema({
-    name: {
-      type: String,
-      minLength: 3,
-      required: [true, 'Person name is required']
-    },
-    number: {
-      type: String,
-      minLength: 8,
-      required: [true, 'Phone number is required'],
-      validate: {
-          validator: function(v) {
-            return /^\d{2,3}-\d{5,}$/.test(v)
-          },
-          message: props => `${props.value} is not a valid phone number`
-      }
+  name: {
+    type: String,
+    minLength: 3,
+    required: [true, 'Person name is required']
+  },
+  number: {
+    type: String,
+    minLength: 8,
+    required: [true, 'Phone number is required'],
+    //Adds custom validator for the phone number
+    validate: {
+      validator: function(v) {
+        return /^\d{2,3}-\d{5,}$/.test(v)
+      },
+      message: props => `${props.value} is not a valid phone number`
     }
+  }
 })
 
-// Format objects returned by Mongoose to JSON to transform id to string and remove __v
+// Formats objects returned by Mongoose to JSON to transform id to string and removes __v
 personSchema.set('toJSON', {
-    transform: (document, returnedObject) => {
-      returnedObject.id = returnedObject._id.toString()
-      delete returnedObject._id
-      delete returnedObject.__v
-    }
+  transform: (document, returnedObject) => {
+    returnedObject.id = returnedObject._id.toString()
+    delete returnedObject._id
+    delete returnedObject.__v
+  }
 })
 
 module.exports = mongoose.model('Person', personSchema)
